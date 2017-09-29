@@ -2,7 +2,7 @@ package condition;
 
 import java.util.List;
 
-public class NoCondition<T> implements ListCondition<T> {
+public class NoCondition<T> implements FinalCondition<T> {
 
 	@Override
 	public boolean sat(List<T> ts, T t) {

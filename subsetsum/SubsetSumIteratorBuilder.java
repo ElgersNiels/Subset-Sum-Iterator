@@ -4,11 +4,12 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import condition.ListCondition;
+import condition.Condition;
+import condition.FinalCondition;
 import condition.NoCondition;
 import progress.ProgressDataStructure;
-import progress.ProgressPriorityQueue;
 import progress.ProgressStack;
+import progress.ProgressPriorityQueue;
 import progress.SubsetSumProgress;
 import toInt.ToInt;
 
@@ -19,8 +20,8 @@ public class SubsetSumIteratorBuilder<T> {
 	private List<ToInt<T>> subsetConditions;
 	
 	private ProgressDataStructure<T> progressDataStructure;
-	private ListCondition<T> progressCondition;
-	private ListCondition<T> finalCondition;
+	private Condition<T> progressCondition;
+	private FinalCondition<T> finalCondition;
 	
 	public SubsetSumIteratorBuilder(List<T> elements, int sum, List<ToInt<T>> subsetConditions) {
 		this.elements = elements;
@@ -42,12 +43,12 @@ public class SubsetSumIteratorBuilder<T> {
 		return this;
 	}
 	
-	public SubsetSumIteratorBuilder<T> progressCondition(ListCondition<T> condition) {
+	public SubsetSumIteratorBuilder<T> progressCondition(Condition<T> condition) {
 		this.progressCondition = condition;
 		return this;
 	}
 	
-	public SubsetSumIteratorBuilder<T> finalCondition(ListCondition<T> condition) {
+	public SubsetSumIteratorBuilder<T> finalCondition(FinalCondition<T> condition) {
 		this.finalCondition = condition;
 		return this;
 	}

@@ -14,4 +14,8 @@ public final class SubsetSumProgress<T> {
 		this.partialSubset = partialSubset;
 	}
 	
+	public String toString() {
+		return i + " " + remainingSum + " " + partialSubset;
+	}
+	
 }

@@ -5,25 +5,25 @@ import java.util.PriorityQueue;
 
 public class ProgressPriorityQueue<T> implements ProgressDataStructure<T> {
 
-	private PriorityQueue<SubsetSumProgress<T>> queue;
+	private PriorityQueue<SubsetSumProgress<T>> set;
 	
 	public ProgressPriorityQueue(Comparator<SubsetSumProgress<T>> comparator) {
-		this.queue = new PriorityQueue<>(0, comparator);
+		this.set = new PriorityQueue<>(comparator);
 	}
 	
 	@Override
 	public void add(SubsetSumProgress<T> progress) {
-		queue.add(progress);
+		set.add(progress);
 	}
 
 	@Override
 	public SubsetSumProgress<T> next() {
-		return queue.poll();
+		return set.poll();
 	}
 
 	@Override
 	public boolean isEmpty() {
-		return queue.isEmpty();
+		return set.isEmpty();
 	}
 
 }

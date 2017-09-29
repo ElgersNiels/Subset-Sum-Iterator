@@ -5,7 +5,8 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import condition.ListCondition;
+import condition.Condition;
+import condition.FinalCondition;
 import condition.NoCondition;
 import progress.ProgressDataStructure;
 import progress.ProgressStack;
@@ -22,8 +23,8 @@ public class SubsetSumIterator<T> implements Iterator<List<T>> {
 	//Element to Integer map.
 	private List<ToInt<T>> toInt;
 	//Condition.
-	private ListCondition<T> interCond;
-	private ListCondition<T> finalCond;
+	private Condition<T> interCond;
+	private FinalCondition<T> finalCond;
 	//Desired sum.
 	private int sum;
 	
@@ -42,8 +43,8 @@ public class SubsetSumIterator<T> implements Iterator<List<T>> {
 	
 	public SubsetSumIterator(List<T> elements, int sum, List<ToInt<T>> toInt, //Obligatories
 			ProgressDataStructure<T> progressDataStructure,	//Optionals
-			ListCondition<T> progressCondition,
-			ListCondition<T> finalCondition) {
+			Condition<T> progressCondition,
+			FinalCondition<T> finalCondition) {
 		
 		//Check input.
 		for (int i = 0; i < elements.size(); i++)
@@ -54,7 +55,7 @@ public class SubsetSumIterator<T> implements Iterator<List<T>> {
 			throw new IllegalArgumentException("Wanted sum must be non-negative.");
 		
 		if (elements.size() != toInt.size())
-			throw new IllegalArgumentException("Size of elements List must be equal to size of ToInteger List.");
+			throw new IllegalArgumentException("Size of ToInteger List must be equal to size of element List.");
 		
 		//Set input.
 		this.elements	= elements;
