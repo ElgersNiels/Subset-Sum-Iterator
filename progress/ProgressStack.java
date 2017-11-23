@@ -2,6 +2,15 @@ package progress;
 
 import java.util.Stack;
 
+/**
+ * 
+ * Simple Stack to store/get SubsetSumProgress.
+ * i.e. LIFO.
+ * 
+ * @author Niels Elgers
+ *
+ * @param <T> The type of the objects in the set to find subset sums for. 
+ */
 public class ProgressStack<T> implements ProgressDataStructure<T> {
 
 	private Stack<SubsetSumProgress<T>> stack;
