@@ -8,9 +8,10 @@ import condition.Condition;
 import condition.FinalCondition;
 import condition.NoCondition;
 import progress.ProgressDataStructure;
-import progress.ProgressStack;
 import progress.ProgressPriorityQueue;
+import progress.ProgressStack;
 import progress.SubsetSumProgress;
+import progress.comparator.lengthComparator;
 import toInt.ToInt;
 
 public class SubsetSumIteratorBuilder<T> {
@@ -22,6 +23,7 @@ public class SubsetSumIteratorBuilder<T> {
 	private ProgressDataStructure<T> progressDataStructure;
 	private Condition<T> progressCondition;
 	private FinalCondition<T> finalCondition;
+	private SubsetSumDPTable<T> table;
 	
 	public SubsetSumIteratorBuilder(List<T> elements, int sum, List<ToInt<T>> subsetConditions) {
 		this.elements = elements;
@@ -36,6 +38,10 @@ public class SubsetSumIteratorBuilder<T> {
 	public SubsetSumIteratorBuilder<T> priorityQueue(Comparator<SubsetSumProgress<T>> comparator) {
 		this.progressDataStructure = new ProgressPriorityQueue<T>(comparator);
 		return this;
+	}
+	
+	public SubsetSumIteratorBuilder<T> priorityQueue() {
+		return priorityQueue(new lengthComparator<T>());
 	}
 	
 	public SubsetSumIteratorBuilder<T> stack() {
@@ -53,6 +59,11 @@ public class SubsetSumIteratorBuilder<T> {
 		return this;
 	}
 	
+	public SubsetSumIteratorBuilder<T> dpTable(SubsetSumDPTable<T> table) {
+		this.table = table;
+		return this;
+	}
+	
 	public SubsetSumIterator<T> build() {
 		if (this.progressDataStructure == null)
 			stack();
@@ -60,7 +71,9 @@ public class SubsetSumIteratorBuilder<T> {
 			progressCondition(new NoCondition<T>());
 		if (this.finalCondition == null)
 			finalCondition(new NoCondition<T>());
+		if (this.table == null)
+			dpTable(new SubsetSumDPTable<T>(elements.size(), sum));
 		
-		return new SubsetSumIterator<T>(elements, sum, subsetConditions, progressDataStructure, progressCondition, finalCondition);
+		return new SubsetSumIterator<T>(elements, sum, subsetConditions, progressDataStructure, progressCondition, finalCondition, table);
 	}
 }

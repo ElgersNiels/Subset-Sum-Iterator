@@ -16,35 +16,72 @@ import toInt.ToInt;
 public class SubsetSumIterator<T> implements Iterator<List<T>> {
 
 	//Dynamic Programming table.
-	private boolean[][] dp;
+	private SubsetSumDPTable<T> dp;
 	
 	//Elements.
 	private List<T> elements;
 	//Element to Integer map.
-	private List<ToInt<T>> toInt;
+	private List<? extends ToInt<T>> toInt;
 	//Condition.
 	private Condition<T> interCond;
 	private FinalCondition<T> finalCond;
-	//Desired sum.
-	private int sum;
 	
 	//Next.
 	private List<T> next;
 	
+	//Progress
 	private ProgressDataStructure<T> pQ;
 	
-	public SubsetSumIterator(List<T> elements, int sum, List<ToInt<T>> toInt) {
+
+	
+	/**
+	 * A SubsetSumIterator that iterates over subsets of `elements` which elements sum to `sum`.
+	 * It uses the ToInt in `toInt` at index i to translate the element int `elements` at index i into an integer.
+	 * @param elements The elements.
+	 * @param sum The sum to sum to.
+	 * @param toInt The ToInt's to translate elements to integers.
+	 */
+	public SubsetSumIterator(List<T> elements, int sum, List<? extends ToInt<T>> toInt) {
 		this(elements, sum, toInt, new ProgressStack<T>(), new NoCondition<T>(), new NoCondition<T>());
 	}
 	
+	/**
+	 * A SubsetSumIterator that iterates over subsets of `elements` which elements sum to `sum`.
+	 * It uses the ToInt `toInt` to translate the elements to integers.
+	 * @param elements The elements.
+	 * @param sum The sum to sum to.
+	 * @param toInt The ToInt to translate elements to integers.
+	 */
 	public SubsetSumIterator(List<T> elements, int sum, ToInt<T> toInt) {
 		this(elements, sum, Collections.nCopies(elements.size(), toInt));
 	}
 	
-	public SubsetSumIterator(List<T> elements, int sum, List<ToInt<T>> toInt, //Obligatories
+	public SubsetSumIterator(List<T> elements, int sum, List<? extends ToInt<T>> toInt, //Obligatories
 			ProgressDataStructure<T> progressDataStructure,	//Optionals
 			Condition<T> progressCondition,
 			FinalCondition<T> finalCondition) {
+		this(elements, sum, toInt, progressDataStructure, progressCondition, finalCondition, new SubsetSumDPTable<T>(elements.size(), sum));
+	}
+	
+	/**
+	 * A SubsetSumIterator that iterates over subsets of `elements` which elements sum to `sum`.
+	 * It uses the ToInt in `toInt` at index i to translate the element int `elements` at index i into an integer.
+	 * Potential subsets are explored in order (if any order) defined in the `progressDatastructure`.
+	 * When an element is being added to a subset because it would potentially lead to a valid subset sum,
+	 * it is checked if adding the element would not violate the `progressCondition`. If it would, the element is not added not and not further explored.
+	 * When a valid subset sum has been found, it is checked if the subset satisfies the `finalCondition`.
+	 * @param elements The elements.
+	 * @param sum The sum to sum to.
+	 * @param toInt The ToInt's to translate elements to integers.
+	 * @param progressDataStructure The progressDataStructure.
+	 * @param progressCondition The progress condition.
+	 * @param finalCondition The final condition.
+	 */
+	public SubsetSumIterator(List<T> elements, int sum, List<? extends ToInt<T>> toInt, //Obligatories
+			ProgressDataStructure<T> progressDataStructure,	//Optionals
+			Condition<T> progressCondition,
+			FinalCondition<T> finalCondition,
+			SubsetSumDPTable<T> dp) {
 		
 		//Check input.
 		for (int i = 0; i < elements.size(); i++)
@@ -62,12 +99,12 @@ public class SubsetSumIterator<T> implements Iterator<List<T>> {
 		this.toInt		= toInt;
 		this.interCond	= progressCondition;
 		this.finalCond	= finalCondition;
-		this.sum = sum;
+        this.dp 		= dp;
         
-		populateDPTable();
+		dp.populate(elements, sum, toInt);
 		
         this.pQ = progressDataStructure;
-	        pQ.add(new SubsetSumProgress<T>(elements.size() - 1, sum, new ArrayList<T>()));
+        pQ.add(new SubsetSumProgress<T>(elements.size() - 1, sum, new ArrayList<T>()));
         
         this.next = findNext();
 	}
@@ -91,27 +128,15 @@ public class SubsetSumIterator<T> implements Iterator<List<T>> {
 		throw new UnsupportedOperationException();
 	}
 
-	private void populateDPTable() {
-		this.dp = new boolean[elements.size()][sum + 1];
-		
-		for (int i = 0; i < elements.size(); i++)
-			dp[i][0] = true;
-		if (toInt.get(0).toInt(elements.get(0)) <= sum)
-			dp[0][toInt.get(0).toInt(elements.get(0))] = true;
-		for (int i = 1; i < elements.size(); i++)
-	        for (int j = 0; j < sum + 1; j++)
-	            dp[i][j] = toInt.get(i).toInt(elements.get(i)) <= j 
-	            ? dp[i - 1][j] || dp[i - 1][j - toInt.get(i).toInt(elements.get(i))] : dp[i - 1][j];
-	}
-
 	private List<T> findNext() {
-		while (!pQ.isEmpty()) {
+		while (!pQ.isEmpty())
+		{
 			SubsetSumProgress<T> pop = pQ.next();
 			
 			if (pop.i == 0 && pop.remainingSum == 0 && finalCond.sat(pop.partialSubset))
 				return new ArrayList<>(pop.partialSubset);
 			
-			if (pop.i == 0 && dp[0][pop.remainingSum]
+			if (pop.i == 0 && dp.get(0, pop.remainingSum)
 					&& interCond.sat(pop.partialSubset, elements.get(0))
 					&& finalCond.sat(pop.partialSubset, elements.get(0)))
 			{
@@ -122,11 +147,11 @@ public class SubsetSumIterator<T> implements Iterator<List<T>> {
 			if (pop.i == 0)
 				continue;
 			
-			if (dp[pop.i-1][pop.remainingSum])
+			if (dp.get(pop.i-1, pop.remainingSum))
 				pQ.add(new SubsetSumProgress<T>(pop.i-1, pop.remainingSum, new ArrayList<>(pop.partialSubset)));
 			
 			if (pop.remainingSum >= toInt.get(pop.i).toInt(elements.get(pop.i))
-				&& dp[pop.i-1][pop.remainingSum-toInt.get(pop.i).toInt(elements.get(pop.i))]
+				&& dp.get(pop.i-1, pop.remainingSum - toInt.get(pop.i).toInt(elements.get(pop.i)) )
 				&& interCond.sat(pop.partialSubset, elements.get(pop.i)))
 			{
 				List<T> c = new ArrayList<>(pop.partialSubset); c.add(elements.get(pop.i));
